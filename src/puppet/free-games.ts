@@ -29,6 +29,8 @@ import type {
 import type { OfferInfo } from '../interfaces/types.js';
 
 export default class PuppetFreeGames extends PuppetBase {
+  lookupComplete = true;
+
   async getCatalogFreeGames(onSale = true): Promise<OfferInfo[]> {
     this.L.debug('Getting global free games');
     const pageLimit = 1000;
@@ -265,6 +267,7 @@ export default class PuppetFreeGames extends PuppetBase {
       throw new Error(entitlementRespBody.errors[0]?.message);
     }
     const validations = entitlementRespBody.data?.Entitlements?.cartOffersValidation;
+    if (!validations) throw new Error('Missing ownership validation response');
     this.L.debug({ offerId, namespace, validations }, 'Offers validation response');
     if (
       validations?.missingPrerequisites?.length ||
@@ -362,6 +365,7 @@ export default class PuppetFreeGames extends PuppetBase {
   }
 
   async getAllFreeGames(): Promise<OfferInfo[]> {
+    this.lookupComplete = true;
     await this.setupPage();
     let validFreeGames: OfferInfo[];
     if (config.searchStrategy === SearchStrategy.WEEKLY) {
@@ -375,11 +379,13 @@ export default class PuppetFreeGames extends PuppetBase {
       try {
         weeklyFreeGames = await this.getWeeklyFreeGames();
       } catch (err) {
+        this.lookupComplete = false;
         this.L.warn(err, 'Failed to lookup weekly free games');
       }
       try {
         catalogFreeGames = await this.getCatalogFreeGames();
       } catch (err) {
+        this.lookupComplete = false;
         this.L.warn(err, 'Failed to lookup catalog free games');
       }
       if (weeklyFreeGames === null && catalogFreeGames === null) {
@@ -410,7 +416,7 @@ export default class PuppetFreeGames extends PuppetBase {
       { purchasableGames: purchasableGames.map((game) => game.productName) },
       'Unpurchased free games',
     );
-    this.teardownPage();
+    await this.teardownPage();
     return purchasableGames;
   }
 }

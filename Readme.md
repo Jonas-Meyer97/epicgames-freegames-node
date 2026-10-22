@@ -141,6 +141,20 @@ in your `config.json`.
 
 Each notification method has unique setup instructions. Read its documentation ([notification methods](https://claabs.github.io/epicgames-freegames-node/classes/AppConfig.html#notifiers)) on the config site for exact details and instructions. The [example config](https://claabs.github.io/epicgames-freegames-node/classes/AppConfig.html) may also help as an example.
 
+### Healthcheck
+
+Set `healthcheckUrl` or `HEALTHCHECK_URL` to an IPv64 or Healthchecks.io success-ping URL.
+The app pings only after all accounts, game lookups and required notifications succeed.
+Already-owned games count as success. Failed runs exit with status 1.
+
+SMTP credentials are checked without sending a test message when no notification is
+needed. Set `healthcheckVerifyEmail: false` to disable this. Other channels are checked
+on actual sends. Neither check guarantees inbox delivery.
+
+Match the monitor interval to `cronSchedule` and use an independent alarm channel.
+Pings time out after ten seconds (`healthcheckTimeout`, 1–60), require HTTP 2xx and do
+not follow redirects. Keep the URL private.
+
 ### Testing notification and web server
 
 Since user actions may not always be required, the notification methods and web server can be manually tested. Essentially, you just need to add:

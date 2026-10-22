@@ -27,7 +27,12 @@ echo "Detected distro: $DISTRO"
 # If runOnStartup is set, run it once before setting up the schedule
 echo "Run on startup: ${RUN_ON_STARTUP}"
 if [ "$RUN_ON_STARTUP" = "true" ]; then
-    node --enable-source-maps /usr/app/dist/src/index.js
+    # Keep cron retries after a failed startup check.
+    startup_status=0
+    node --enable-source-maps /usr/app/dist/src/index.js || startup_status=$?
+    if [ "$RUN_ONCE" = "true" ]; then
+        exit "$startup_status"
+    fi
 fi
 
 # If runOnce is not set, schedule the process

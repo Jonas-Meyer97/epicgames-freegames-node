@@ -739,6 +739,36 @@ export enum LogLevel {
  */
 export class AppConfig {
   /**
+   * Success-ping URL, called after all accounts and notifications succeed.
+   * @env HEALTHCHECK_URL
+   */
+  @IsOptional()
+  @IsUrl({ require_tld: false, require_protocol: true, protocols: ['http', 'https'] })
+  healthcheckUrl = process.env.HEALTHCHECK_URL;
+
+  /**
+   * Maximum time in seconds to wait for the success ping.
+   * @default 10
+   * @env HEALTHCHECK_TIMEOUT
+   */
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(60)
+  healthcheckTimeout = process.env.HEALTHCHECK_TIMEOUT
+    ? parseInt(process.env.HEALTHCHECK_TIMEOUT, 10)
+    : 10;
+
+  /**
+   * Verify SMTP credentials without a test email when monitoring is enabled.
+   * @default true
+   * @env HEALTHCHECK_VERIFY_EMAIL
+   */
+  @IsOptional()
+  @IsBoolean()
+  healthcheckVerifyEmail = process.env.HEALTHCHECK_VERIFY_EMAIL?.toLowerCase() !== 'false';
+
+  /**
    * Cron string of when to run the process.
    * **It is recommended to run every 6 hours, otherwise the refresh tokens will expire after 8 hours and a new login will be prompted every run.**
    * If you want the check to occur immediately after the new free game is released, you can offset the cron schedule. For example in a timezone where the free games release at 11:00am: `0 5,11,17,23 * * *`

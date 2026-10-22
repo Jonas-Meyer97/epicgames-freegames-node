@@ -27,6 +27,7 @@ const L = pino({
   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
   level: process.env.LOG_LEVEL || 'info',
   base: undefined,
+  redact: ['config.healthcheckUrl'],
 });
 
 // TODO: Add YAML parser
@@ -71,6 +72,7 @@ if (!configPath) {
 const errors = await validate(config, {
   validationError: {
     target: false,
+    value: false,
   },
 });
 if (errors.length > 0) {

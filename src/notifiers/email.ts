@@ -23,7 +23,18 @@ export class EmailNotifier extends NotifierService {
       port: this.config.smtpPort,
       secure: this.config.secure,
       auth: this.config.auth,
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 10000,
     });
+  }
+
+  async verify(): Promise<void> {
+    try {
+      await this.emailTransporter.verify();
+    } finally {
+      this.emailTransporter.close();
+    }
   }
 
   async sendNotification(account: string, reason: NotificationReason, url: string): Promise<void> {
@@ -50,7 +61,7 @@ export class EmailNotifier extends NotifierService {
         'Email sent.',
       );
     } catch (err) {
-      L.error({ emailConfig: this.config }, 'Error sending email. Please check your configuration');
+      L.error('Error sending email. Please check your configuration');
       throw err;
     }
   }

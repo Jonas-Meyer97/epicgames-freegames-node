@@ -33,6 +33,22 @@ import type {
 } from './common/config/index.js';
 import type { NotificationReason } from './interfaces/notification-reason.js';
 
+export async function verifyNotifiers(accountEmail: string, verifyEmail = true): Promise<void> {
+  if (!config.healthcheckUrl) return;
+  const account = config.accounts.find((acct) => acct.email === accountEmail);
+  const notifierConfigs = account?.notifiers ?? config.notifiers;
+  if (!notifierConfigs?.length) {
+    throw new Error('Healthcheck requires at least one configured notifier for every account');
+  }
+  if (verifyEmail && config.healthcheckVerifyEmail) {
+    await Promise.all(
+      notifierConfigs
+        .filter((notifier) => notifier.type === NotificationType.EMAIL)
+        .map(async (notifier) => new EmailNotifier(notifier as EmailConfig).verify()),
+    );
+  }
+}
+
 export async function sendNotification(
   accountEmail: string,
   reason: NotificationReason,
@@ -82,9 +98,12 @@ export async function sendNotification(
     }
   });
 
-  await Promise.all(
+  const results = await Promise.allSettled(
     notifiers.map(async (notifier) => notifier.sendNotification(accountEmail, reason, url)),
   );
+  if (results.some((result) => result.status === 'rejected')) {
+    throw new Error('One or more configured notifiers failed');
+  }
 }
 
 export async function testNotifiers(): Promise<void> {

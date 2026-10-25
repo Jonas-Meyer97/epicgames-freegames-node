@@ -1,19 +1,20 @@
 import nodemailer from 'nodemailer';
 
-import { NotifierService } from './notifier-service.js';
-import logger from '../common/logger.js';
+import { NotifierService } from './notifier-service.ts';
+import logger from '../common/logger.ts';
 
 import type { Transporter } from 'nodemailer';
+import type z from 'zod';
 
-import type { EmailConfig } from '../common/config/index.js';
-import type { NotificationReason } from '../interfaces/notification-reason.js';
+import type { emailConfigSchema } from '../common/config/index.ts';
+import type { NotificationReason } from '../notify.ts';
 
 export class EmailNotifier extends NotifierService {
   private readonly emailTransporter: Transporter;
 
-  private config: EmailConfig;
+  private config: z.infer<typeof emailConfigSchema>;
 
-  constructor(config: EmailConfig) {
+  constructor(config: z.infer<typeof emailConfigSchema>) {
     super();
 
     this.config = config;
@@ -23,9 +24,9 @@ export class EmailNotifier extends NotifierService {
       port: this.config.smtpPort,
       secure: this.config.secure,
       auth: this.config.auth,
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 10000,
+      connectionTimeout: 10_000,
+      greetingTimeout: 10_000,
+      socketTimeout: 10_000,
     });
   }
 
@@ -60,9 +61,9 @@ export class EmailNotifier extends NotifierService {
         },
         'Email sent.',
       );
-    } catch (err) {
+    } catch (error) {
       L.error('Error sending email. Please check your configuration');
-      throw err;
+      throw error;
     }
   }
 }

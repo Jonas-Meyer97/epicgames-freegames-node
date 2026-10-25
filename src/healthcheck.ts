@@ -1,6 +1,6 @@
-import axios from './axios-base.js';
-import { config } from './common/config/index.js';
-import logger from './common/logger.js';
+import axios from './axios-base.ts';
+import { config } from './common/config/index.ts';
+import logger from './common/logger.ts';
 
 export async function sendHealthcheck(): Promise<void> {
   if (!config.healthcheckUrl) return;
